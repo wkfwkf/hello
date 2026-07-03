@@ -122,11 +122,30 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+renderer.toneMappingExposure = 1.02;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x05070c);
-scene.fog = new THREE.Fog(0x05070c, 900, 2100);
+scene.fog = new THREE.Fog(0xd9ab7c, 1050, 2600);
+/* 黄昏天空穹顶 */
+(function buildSky() {
+  const sc = document.createElement('canvas');
+  sc.width = 64; sc.height = 256;
+  const sg = sc.getContext('2d');
+  const grad = sg.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0.00, '#33608f');
+  grad.addColorStop(0.42, '#7ba3c4');
+  grad.addColorStop(0.62, '#e8bd8a');
+  grad.addColorStop(0.72, '#e89a5e');
+  grad.addColorStop(1.00, '#6e4f38');
+  sg.fillStyle = grad; sg.fillRect(0, 0, 64, 256);
+  const tex = new THREE.CanvasTexture(sc);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const dome = new THREE.Mesh(
+    new THREE.SphereGeometry(2800, 24, 12),
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false }));
+  dome.position.y = -160;
+  scene.add(dome);
+})();
 
 const camera = new THREE.PerspectiveCamera(45, 16/9, 5, 4000);
 const ORBIT = {
@@ -146,9 +165,9 @@ function updateCamera() {
 updateCamera();
 
 /* 光照 */
-scene.add(new THREE.HemisphereLight(0x7a9cc9, 0x1a1512, 0.7));
-const sun = new THREE.DirectionalLight(0xfff2dd, 1.5);
-sun.position.set(320, 560, 180);
+scene.add(new THREE.HemisphereLight(0xbdd6ee, 0x6b5f48, 1.05));
+const sun = new THREE.DirectionalLight(0xffdfb2, 2.0);
+sun.position.set(360, 430, -240);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.camera.left = -560; sun.shadow.camera.right = 560;
@@ -168,67 +187,123 @@ function toScreen(x, y, z) {
 
 /* ---------- 地面与环境 ---------- */
 (function buildGround() {
-  // 棋盘格贴图
+  /* 战场地表：城市分区贴图（街区/马路/广场/草地/废墟）*/
+  const S = 48;
   const tc = document.createElement('canvas');
-  tc.width = COLS * 32; tc.height = ROWS * 32;
+  tc.width = COLS * S; tc.height = ROWS * S;
   const g = tc.getContext('2d');
+  const hash = (c, r) => (((c + 3) * 73856093) ^ ((r + 7) * 19349663)) >>> 0;
+  function zone(c, r) {
+    if (c === 10 || r === 6) return 'road';
+    if (c >= 17 && r >= 4 && r <= 8) return 'plaza';
+    if (c >= 4 && c <= 6 && r >= 1 && r <= 3) return 'grass';
+    if (c >= 13 && c <= 15 && r >= 8 && r <= 10) return 'grass';
+    if (c <= 2 && r >= 4 && r <= 8) return 'ruin';
+    if (r <= 1 && c >= 7 && c <= 13 && c !== 10) return 'ruin';
+    return 'block';
+  }
   for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) {
-    g.fillStyle = (c + r) % 2 ? '#1b2433' : '#161e2b';
-    g.fillRect(c*32, r*32, 32, 32);
-    g.strokeStyle = 'rgba(120,160,210,0.16)';
-    g.strokeRect(c*32 + 0.5, r*32 + 0.5, 31, 31);
+    const x = c * S, y = r * S, h = hash(c, r), z = zone(c, r);
+    if (z === 'road') {                                          // 柏油马路
+      g.fillStyle = '#43464d'; g.fillRect(x, y, S, S);
+      g.fillStyle = 'rgba(255,255,255,0.05)';
+      for (let i2 = 0; i2 < 5; i2++) g.fillRect(x + (h + i2*37) % S, y + ((h>>3) + i2*53) % S, 3, 2);
+      g.fillStyle = '#5c6068';
+      if (c === 10) { g.fillRect(x, y, 3, S); g.fillRect(x + S - 3, y, 3, S); }
+      if (r === 6) { g.fillRect(x, y, S, 3); g.fillRect(x, y + S - 3, S, 3); }
+      g.fillStyle = '#d8c05a';                                   // 车道虚线
+      if (c === 10 && r !== 6) for (let i2 = 0; i2 < 3; i2++) g.fillRect(x + S/2 - 1.5, y + 4 + i2*16, 3, 9);
+      if (r === 6 && c !== 10) for (let i2 = 0; i2 < 3; i2++) g.fillRect(x + 4 + i2*16, y + S/2 - 1.5, 9, 3);
+      if (c === 10 && r === 6) {                                 // 十字路口斑马线
+        g.fillStyle = 'rgba(255,255,255,0.72)';
+        for (let i2 = 0; i2 < 5; i2++) { g.fillRect(x + 6 + i2*8, y + 3, 5, 8); g.fillRect(x + 6 + i2*8, y + S - 11, 5, 8); }
+      }
+    } else if (z === 'plaza') {                                  // NERV 前广场
+      g.fillStyle = '#9c968a'; g.fillRect(x, y, S, S);
+      g.strokeStyle = 'rgba(92,86,74,0.5)'; g.lineWidth = 1;
+      for (let i2 = 1; i2 < 3; i2++) {
+        g.beginPath(); g.moveTo(x + i2*16, y); g.lineTo(x + i2*16, y + S); g.stroke();
+        g.beginPath(); g.moveTo(x, y + i2*16); g.lineTo(x + S, y + i2*16); g.stroke();
+      }
+      if (h % 5 === 0) { g.fillStyle = '#5e7a48'; g.beginPath(); g.arc(x + S/2, y + S/2, 5, 0, 7); g.fill(); }
+    } else if (z === 'grass') {                                  // 公园草地
+      g.fillStyle = '#5d7a44'; g.fillRect(x, y, S, S);
+      for (let i2 = 0; i2 < 8; i2++) {
+        g.fillStyle = (i2 % 2) ? 'rgba(122,162,92,0.5)' : 'rgba(62,92,46,0.55)';
+        g.beginPath();
+        g.arc(x + 4 + (h * (i2+3)) % (S-8), y + 4 + (h >> (i2 % 5)) % (S-8), 3 + i2 % 4, 0, 7);
+        g.fill();
+      }
+      if (h % 4 === 0) {                                         // 树冠
+        g.fillStyle = '#3a5630';
+        g.beginPath(); g.arc(x + (h % 30) + 9, y + ((h>>5) % 30) + 9, 6.5, 0, 7); g.fill();
+        g.fillStyle = 'rgba(255,255,255,0.12)';
+        g.beginPath(); g.arc(x + (h % 30) + 7, y + ((h>>5) % 30) + 7, 2.5, 0, 7); g.fill();
+      }
+    } else if (z === 'ruin') {                                   // 旧市街废墟
+      g.fillStyle = '#6e685c'; g.fillRect(x, y, S, S);
+      g.strokeStyle = 'rgba(35,30,25,0.6)'; g.lineWidth = 1.5;
+      g.beginPath();
+      let cx0 = x + h % S, cy0 = y;
+      g.moveTo(cx0, cy0);
+      for (let i2 = 0; i2 < 3; i2++) { cx0 += ((h >> i2) % 17) - 8; cy0 += 12 + (h >> (i2+2)) % 8; g.lineTo(cx0, cy0); }
+      g.stroke();
+      for (let i2 = 0; i2 < 6; i2++) {
+        g.fillStyle = (i2 % 2) ? '#7d786c' : '#57534a';
+        g.fillRect(x + (h*(i2+1)) % (S-6), y + (h>>(i2%6)) % (S-6), 3 + i2 % 4, 2 + i2 % 3);
+      }
+      g.fillStyle = 'rgba(20,18,15,0.25)';
+      g.beginPath(); g.arc(x + (h % 40) + 4, y + ((h>>4) % 40) + 4, 7, 0, 7); g.fill();
+    } else {                                                     // 城市街区
+      const v = 8 - (h % 5) * 3;
+      g.fillStyle = 'rgb(' + (109+v) + ',' + (118+v) + ',' + (130+v) + ')';
+      g.fillRect(x, y, S, S);
+      g.fillStyle = 'rgba(70,78,92,0.85)';                       // 建筑地基
+      g.fillRect(x + 6 + h % 8, y + 6 + (h>>3) % 8, 22 + h % 10, 18 + (h>>5) % 12);
+      g.fillStyle = 'rgba(255,255,255,0.10)';
+      g.fillRect(x + 6 + h % 8, y + 6 + (h>>3) % 8, 22 + h % 10, 2);
+      g.fillStyle = 'rgba(158,168,182,0.55)';                    // 人行道
+      g.fillRect(x, y + S - 4, S, 4); g.fillRect(x + S - 4, y, 4, S);
+    }
+    g.strokeStyle = 'rgba(240,248,255,0.14)'; g.lineWidth = 1;   // 部署网格
+    g.strokeRect(x + 0.5, y + 0.5, S - 1, S - 1);
   }
-  for (let i = 0; i < 500; i++) {
-    g.fillStyle = 'rgba(150,190,235,' + (0.02 + Math.random()*0.05) + ')';
-    g.fillRect(Math.random()*tc.width, Math.random()*tc.height, 2, 2);
-  }
-  // 城市街区：建筑地基块 + 主干道
-  for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) {
-    const h = (c * 7 + r * 13) % 5;
-    g.fillStyle = 'rgba(8,12,18,' + (0.25 + h * 0.06) + ')';
-    g.fillRect(c*32 + 5 + (h % 3) * 3, r*32 + 5 + (h % 2) * 4, 12 + h * 2, 10 + (h % 3) * 3);
-    g.fillStyle = 'rgba(120,160,210,0.06)';
-    g.fillRect(c*32 + 4, r*32 + 22, 20, 3);
-  }
-  g.strokeStyle = 'rgba(170,205,245,0.22)'; g.lineWidth = 3;
-  g.beginPath(); g.moveTo(10*32, 0); g.lineTo(10*32, tc.height); g.stroke();     // 主干道
-  g.beginPath(); g.moveTo(0, 6*32); g.lineTo(tc.width, 6*32); g.stroke();
   const tex = new THREE.CanvasTexture(tc);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 4;
+  tex.anisotropy = 8;
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(COLS*CELL, ROWS*CELL),
-    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, metalness: 0.1 })
+    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0.05 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
-  // 外围暗色大地
+  // 外围草原大地
   const outer = new THREE.Mesh(
-    new THREE.PlaneGeometry(6000, 6000),
-    new THREE.MeshStandardMaterial({ color: 0x0a0e15, roughness: 1 })
+    new THREE.PlaneGeometry(7000, 7000),
+    new THREE.MeshStandardMaterial({ color: 0x55663f, roughness: 1 })
   );
-  outer.rotation.x = -Math.PI / 2; outer.position.y = -0.5;
+  outer.rotation.x = -Math.PI / 2; outer.position.y = -0.4;
   outer.receiveShadow = true;
   scene.add(outer);
-  // 发光边框
+  // 干道向地平线延伸
+  const roadMat = new THREE.MeshStandardMaterial({ color: 0x43464d, roughness: 0.95 });
+  for (const seg of [
+    { w: 40, h: 1300, x: 20, z: -(H2 + 650) }, { w: 40, h: 1300, x: 20, z: H2 + 650 },
+    { w: 1300, h: 40, x: W2 + 650, z: 20 }, { w: 1300, h: 40, x: -(W2 + 650), z: 20 }
+  ]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(seg.w, seg.h), roadMat);
+    m.rotation.x = -Math.PI / 2; m.position.set(seg.x, 0.12, seg.z);
+    m.receiveShadow = true;
+    scene.add(m);
+  }
+  // 战场描边
   const frame = new THREE.LineSegments(
     new THREE.EdgesGeometry(new THREE.PlaneGeometry(COLS*CELL, ROWS*CELL)),
-    new THREE.LineBasicMaterial({ color: 0x4dd7ff, transparent: true, opacity: 0.5 })
+    new THREE.LineBasicMaterial({ color: 0xeaf4ff, transparent: true, opacity: 0.45 })
   );
   frame.rotation.x = -Math.PI / 2; frame.position.y = 0.6;
   scene.add(frame);
-  // 星空
-  const starGeo = new THREE.BufferGeometry();
-  const starPos = new Float32Array(360 * 3);
-  for (let i = 0; i < 360; i++) {
-    const a = Math.random() * Math.PI * 2, e = Math.random() * 0.9 + 0.08, R = 1700;
-    starPos[i*3] = R * Math.cos(e) * Math.cos(a);
-    starPos[i*3+1] = R * Math.sin(e);
-    starPos[i*3+2] = R * Math.cos(e) * Math.sin(a);
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x8fb4d9, size: 2.2, sizeAttenuation: false, fog: false })));
 })();
 
 /* ---------- 材质 / 几何工具 ---------- */
@@ -603,10 +678,10 @@ let cityDown = false;                       // Boss 波：要塞都市转换（�
 const cityBuildings = [];
 (function buildTokyo3() {
   const bmats = [
-    mat(0x2a3444, { roughness: 0.75 }), mat(0x232c3a, { roughness: 0.85 }),
-    mat(0x33405a, { roughness: 0.7 }), mat(0x2e3a4e, { roughness: 0.8 })
+    mat(0x8d939c, { roughness: 0.8 }), mat(0x9aa1a8, { roughness: 0.85 }),
+    mat(0x7e8894, { roughness: 0.75 }), mat(0xa8a89e, { roughness: 0.85 })
   ];
-  const wmat = emat(0x9fd8ff, 0.7);
+  const wmat = mat(0x6da2c4, { roughness: 0.25, metalness: 0.6, emissive: 0x2a5a78, emissiveIntensity: 0.35 });
   let seed = 7;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   function bld(x, z, w, d, h) {
@@ -620,7 +695,7 @@ const cityBuildings = [];
       st.position.y = h * (i + 1) / (bands + 1); st.castShadow = false;
       grp.add(st);
     }
-    const cap = new THREE.Mesh(geo('box', w * 0.55, 2.2, d * 0.55), mat(0x1a2230));
+    const cap = new THREE.Mesh(geo('box', w * 0.55, 2.2, d * 0.55), mat(0x5c636c));
     cap.position.y = h + 1.1; grp.add(cap);
     grp.position.set(x, 0, z);
     scene.add(grp);
@@ -636,19 +711,65 @@ const cityBuildings = [];
     bld(474 + rnd() * 70, -140 + i * 90, 18 + rnd() * 12, 18 + rnd() * 10, 26 + rnd() * 30);
   // 芦之湖（西南）
   const lake = new THREE.Mesh(new THREE.CircleGeometry(150, 30),
-    mat(0x123a56, { roughness: 0.12, metalness: 0.55, emissive: 0x08243a, emissiveIntensity: 0.5 }));
+    mat(0x2e6f96, { roughness: 0.06, metalness: 0.7, emissive: 0x1a4460, emissiveIntensity: 0.45 }));
   lake.rotation.x = -Math.PI / 2; lake.position.set(-W2 - 250, 0.35, H2 + 190);
   lake.scale.set(1.55, 1, 1); lake.receiveShadow = true;
   scene.add(lake);
   // 环形群山（箱根外轮山）
-  const mmats = [mat(0x1c2620, { roughness: 1 }), mat(0x212a33, { roughness: 1 })];
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 9; i++) {                                             // 近处草坡低丘
+    const a1 = i / 9 * Math.PI * 2 + rnd() * 0.4;
+    const R1 = 540 + rnd() * 160;
+    const hillH = 26 + rnd() * 30;
+    const hill = new THREE.Mesh(geo('cone', 110 + rnd() * 90, hillH, 8), mat(0x51603f, { roughness: 1 }));
+    hill.position.set(Math.cos(a1) * R1, hillH * -0.06, Math.sin(a1) * R1 * 0.78);
+    hill.castShadow = false; hill.receiveShadow = true;
+    scene.add(hill);
+  }
+  const mmats = [mat(0x4d5a3e, { roughness: 1 }), mat(0x5d6a76, { roughness: 1 })];
+  for (let i = 0; i < 14; i++) {                                            // 箱根外轮山
     const a2 = i / 14 * Math.PI * 2 + rnd() * 0.3;
-    const R = 760 + rnd() * 260;
-    const m = new THREE.Mesh(geo('cone', 70 + rnd() * 90, 55 + rnd() * 90, 7), mmats[i % 2]);
+    const R = 800 + rnd() * 300;
+    const m = new THREE.Mesh(geo('cone', 90 + rnd() * 110, 60 + rnd() * 110, 7), mmats[i % 2]);
     m.position.set(Math.cos(a2) * R, 0, Math.sin(a2) * R * 0.8);
     m.castShadow = false; m.receiveShadow = true;
     scene.add(m);
+  }
+  // 旧市街废墟（西侧，使徒入侵方向）
+  const rmat = mat(0x8a8478, { roughness: 0.95 }), rmat2 = mat(0x6e6a5e, { roughness: 0.95 });
+  seed = 99;
+  for (let i = 0; i < 7; i++) {
+    const x = -W2 - 90 - rnd() * 170, z = -150 + rnd() * 320;
+    const w = 18 + rnd() * 16, d = 16 + rnd() * 14, h = 10 + rnd() * 24;
+    const shell = new THREE.Mesh(geo('box', w, h, d), i % 2 ? rmat : rmat2);
+    shell.position.set(x, h / 2 - 1.2, z);
+    shell.rotation.z = (rnd() - 0.5) * 0.16;
+    shell.castShadow = shell.receiveShadow = true;
+    scene.add(shell);
+    const slab = new THREE.Mesh(geo('box', w * 0.9, 2.2, d * 0.8), rmat2);
+    slab.position.set(x + (rnd() - 0.5) * 20, 1.3, z + (rnd() - 0.5) * 18);
+    slab.rotation.set(0, rnd() * 1.4, 0.22 + rnd() * 0.3);
+    slab.castShadow = slab.receiveShadow = true;
+    scene.add(slab);
+    for (let k = 0; k < 4; k++) {
+      const rb = new THREE.Mesh(geo('box', 3 + rnd() * 4, 2 + rnd() * 3, 3 + rnd() * 4), rmat);
+      rb.position.set(x + (rnd() - 0.5) * 40, 0.9, z + (rnd() - 0.5) * 34);
+      rb.rotation.y = rnd() * 2;
+      rb.castShadow = true;
+      scene.add(rb);
+    }
+  }
+  // 外围林地
+  const tmat = mat(0x3f6034, { roughness: 1 }), trunkM = mat(0x5a4632, { roughness: 1 });
+  for (let i = 0; i < 18; i++) {
+    const ang = rnd() * Math.PI * 2, R2 = 470 + rnd() * 280;
+    const x = Math.cos(ang) * R2, z = Math.sin(ang) * R2 * 0.75;
+    if (Math.abs(x) < W2 + 60 && Math.abs(z) < H2 + 60) continue;
+    const t1 = new THREE.Mesh(geo('cyl', 1.2, 1.6, 6, 5), trunkM);
+    t1.position.set(x, 3, z); t1.castShadow = true;
+    scene.add(t1);
+    const t2 = new THREE.Mesh(geo('cone', 6 + rnd() * 4.5, 14 + rnd() * 9, 6), tmat);
+    t2.position.set(x, 12, z); t2.castShadow = true;
+    scene.add(t2);
   }
 })();
 /* EVA 弹射平台 */
@@ -779,11 +900,11 @@ function updateParticleBuffer() {
 
 /* ---------- 部署辅助（格子高亮 / 射程圈 / 幽灵机体） ---------- */
 const tileMark = new THREE.Mesh(new THREE.PlaneGeometry(CELL, CELL),
-  new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.3, depthWrite: false }));
+  new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.42, depthWrite: false }));
 tileMark.rotation.x = -Math.PI / 2; tileMark.visible = false;
 scene.add(tileMark);
 const rangeRing = new THREE.Mesh(new THREE.RingGeometry(0.965, 1, 64),
-  new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
 rangeRing.rotation.x = -Math.PI / 2; rangeRing.visible = false;
 scene.add(rangeRing);
 const rangeFill = new THREE.Mesh(new THREE.CircleGeometry(1, 64),
