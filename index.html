@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>机甲防线 MECHA FRONTLINE — 3D 迷宫塔防</title>
+<title>EVA TD — 第三新东京市使徒迎击战</title>
 <style>
   :root{
     --bg:#07090d; --panel:#10151d; --panel2:#161d27; --line:#233042;
@@ -111,8 +111,8 @@
 </head>
 <body>
 <header>
-  <h1>机甲防线</h1>
-  <div class="sub">MECHA FRONTLINE — 使徒迎击作战 · EVA全机出击 · 真3D 迷宫塔防 × 亲自驾驶</div>
+  <h1>EVA TD</h1>
+  <div class="sub">第三新东京市 · 使徒迎击作战 · 真3D 迷宫塔防 × 亲自驾驶</div>
 </header>
 
 <div id="topbar">
@@ -359,6 +359,17 @@ function toScreen(x, y, z) {
     g.fillStyle = 'rgba(150,190,235,' + (0.02 + Math.random()*0.05) + ')';
     g.fillRect(Math.random()*tc.width, Math.random()*tc.height, 2, 2);
   }
+  // 城市街区：建筑地基块 + 主干道
+  for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) {
+    const h = (c * 7 + r * 13) % 5;
+    g.fillStyle = 'rgba(8,12,18,' + (0.25 + h * 0.06) + ')';
+    g.fillRect(c*32 + 5 + (h % 3) * 3, r*32 + 5 + (h % 2) * 4, 12 + h * 2, 10 + (h % 3) * 3);
+    g.fillStyle = 'rgba(120,160,210,0.06)';
+    g.fillRect(c*32 + 4, r*32 + 22, 20, 3);
+  }
+  g.strokeStyle = 'rgba(170,205,245,0.22)'; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(10*32, 0); g.lineTo(10*32, tc.height); g.stroke();     // 主干道
+  g.beginPath(); g.moveTo(0, 6*32); g.lineTo(tc.width, 6*32); g.stroke();
   const tex = new THREE.CanvasTexture(tc);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
@@ -764,6 +775,75 @@ const TOWER_BUILDERS = {
   cannon: buildEva02, atfield: buildMark06, eva: buildEva13
 };
 
+/* ---------- 第三新东京市环境 ---------- */
+let cityDown = false;                       // Boss 波：要塞都市转换（大楼收纳）
+const cityBuildings = [];
+(function buildTokyo3() {
+  const bmats = [
+    mat(0x2a3444, { roughness: 0.75 }), mat(0x232c3a, { roughness: 0.85 }),
+    mat(0x33405a, { roughness: 0.7 }), mat(0x2e3a4e, { roughness: 0.8 })
+  ];
+  const wmat = emat(0x9fd8ff, 0.7);
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  function bld(x, z, w, d, h) {
+    const grp = new THREE.Group();
+    const b = new THREE.Mesh(geo('box', w, h, d), bmats[(rnd() * 4) | 0]);
+    b.position.y = h / 2; b.castShadow = b.receiveShadow = true;
+    grp.add(b);
+    const bands = 1 + ((h / 26) | 0);
+    for (let i = 0; i < bands; i++) {                                       // 发光窗带
+      const st = new THREE.Mesh(geo('box', w + 0.4, 0.9, d + 0.4), wmat);
+      st.position.y = h * (i + 1) / (bands + 1); st.castShadow = false;
+      grp.add(st);
+    }
+    const cap = new THREE.Mesh(geo('box', w * 0.55, 2.2, d * 0.55), mat(0x1a2230));
+    cap.position.y = h + 1.1; grp.add(cap);
+    grp.position.set(x, 0, z);
+    scene.add(grp);
+    cityBuildings.push({ grp, h });
+  }
+  for (let i = 0; i < 13; i++)                                              // 北侧天际线（高层）
+    bld(-390 + i * 64 + rnd() * 22, -286 - rnd() * 120, 20 + rnd() * 16, 18 + rnd() * 14, 42 + rnd() * 62);
+  for (let i = 0; i < 6; i++)                                               // 西侧楼群
+    bld(-478 - rnd() * 90, -170 + i * 62, 20 + rnd() * 14, 20 + rnd() * 12, 34 + rnd() * 44);
+  for (let i = 0; i < 7; i++)                                               // 南侧近景（低层，避免挡镜头）
+    bld(-330 + i * 110 + rnd() * 30, 292 + rnd() * 60, 18 + rnd() * 14, 16 + rnd() * 12, 20 + rnd() * 22);
+  for (let i = 0; i < 4; i++)                                               // 东侧（NERV 外围）
+    bld(474 + rnd() * 70, -140 + i * 90, 18 + rnd() * 12, 18 + rnd() * 10, 26 + rnd() * 30);
+  // 芦之湖（西南）
+  const lake = new THREE.Mesh(new THREE.CircleGeometry(150, 30),
+    mat(0x123a56, { roughness: 0.12, metalness: 0.55, emissive: 0x08243a, emissiveIntensity: 0.5 }));
+  lake.rotation.x = -Math.PI / 2; lake.position.set(-W2 - 250, 0.35, H2 + 190);
+  lake.scale.set(1.55, 1, 1); lake.receiveShadow = true;
+  scene.add(lake);
+  // 环形群山（箱根外轮山）
+  const mmats = [mat(0x1c2620, { roughness: 1 }), mat(0x212a33, { roughness: 1 })];
+  for (let i = 0; i < 14; i++) {
+    const a2 = i / 14 * Math.PI * 2 + rnd() * 0.3;
+    const R = 760 + rnd() * 260;
+    const m = new THREE.Mesh(geo('cone', 70 + rnd() * 90, 55 + rnd() * 90, 7), mmats[i % 2]);
+    m.position.set(Math.cos(a2) * R, 0, Math.sin(a2) * R * 0.8);
+    m.castShadow = false; m.receiveShadow = true;
+    scene.add(m);
+  }
+})();
+/* EVA 弹射平台 */
+function makePad() {
+  const pad = new THREE.Group();
+  const plate = new THREE.Mesh(geo('box', 33, 1.5, 33), mat(0x232b38, { roughness: 0.85 }));
+  plate.position.y = 0.75; plate.receiveShadow = true; pad.add(plate);
+  const inner = new THREE.Mesh(geo('box', 22, 0.7, 22), mat(0x1a212c));
+  inner.position.y = 1.6; pad.add(inner);
+  for (const [px, pz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {            // 黄色警示角
+    const c1 = new THREE.Mesh(geo('box', 8, 0.6, 2.4), mat(0xd8b64a));
+    c1.position.set(px * 12.5, 1.85, pz * 13.5); pad.add(c1);
+    const c2 = new THREE.Mesh(geo('box', 2.4, 0.6, 8), mat(0xd8b64a));
+    c2.position.set(px * 13.5, 1.85, pz * 12.5); pad.add(c2);
+  }
+  return pad;
+}
+
 /* ---------- 传送门与本部 ---------- */
 const portalMeshes = [];
 for (const s of SPAWNS) {
@@ -778,11 +858,14 @@ for (const s of SPAWNS) {
 const baseGroup = (() => {
   const g = new THREE.Group();
   g.position.copy(gw(goalPx.x, goalPx.y, 0));
-  const cone = P(g, 'cone', [22, 42, 4], mat(0x40296e, { roughness: 0.35, metalness: 0.3 }), 0, 21, 0, 0, Math.PI/4, 0);
+  const hex = P(g, 'cyl', [30, 33, 2.6, 6], mat(0x1d1730, { roughness: 0.6 }), 0, 1.3, 0);
+  hex.receiveShadow = true;
+  P(g, 'tor', [30, 0.5, 6, 6], emat(0x9a6bff, 1.2), 0, 2.8, 0, Math.PI/2, 0, 0).castShadow = false;
+  const cone = P(g, 'cone', [21, 42, 4], mat(0x171029, { roughness: 0.35, metalness: 0.3 }), 0, 23, 0, 0, Math.PI/4, 0);
   const edges = new THREE.LineSegments(
     new THREE.EdgesGeometry(cone.geometry),
     new THREE.LineBasicMaterial({ color: 0x9a6bff, transparent: true, opacity: 0.8 }));
-  edges.position.y = 21; edges.rotation.y = Math.PI/4;
+  edges.position.y = 23; edges.rotation.y = Math.PI/4;
   g.add(edges);
   P(g, 'sph', [3, 10, 8], emat(0x9a6bff, 2.4), 0, 16, 12).castShadow = false;
   const light = new THREE.PointLight(0x9a6bff, 1.6, 180, 1.8);
@@ -918,7 +1001,7 @@ function setGhost(key) {
 let G;
 function resetGame() {
   if (G) {
-    for (const t of G.towers) scene.remove(t.mesh);
+    for (const t of G.towers) { scene.remove(t.mesh); if (t.pad) scene.remove(t.pad); }
     for (const e of G.enemies) scene.remove(e.mesh);
     if (G.hero.mesh) scene.remove(G.hero.mesh);
   }
@@ -935,6 +1018,7 @@ function resetGame() {
   };
   G.hero.mesh = buildHero();
   scene.add(G.hero.mesh);
+  cityDown = false;
   refreshFlow();
   setGhost(null);
   document.getElementById('overlay').classList.remove('on');
@@ -1033,7 +1117,8 @@ function addText(wx, wy, wz, txt, color, size) {
   G.texts.push({ wx, wy, wz, txt, color, size: size || 13, ttl: 1, life: 1, screen: false });
 }
 function announce(txt, color, size) {
-  G.texts.push({ x: 0.5, y: 0.32, txt, color, size: size || 20, ttl: 1.4, life: 1.4, screen: true });
+  const stack = G.texts.filter(t => t.screen).length;   // 多条公告自动错行
+  G.texts.push({ x: 0.5, y: 0.32 + stack * 0.055, txt, color, size: size || 20, ttl: 1.4, life: 1.4, screen: true });
 }
 
 /* ---------- 伤害 ---------- */
@@ -1159,6 +1244,10 @@ function placeTower(key, c, r) {
   };
   t.mesh.position.copy(gw(t.x, t.y, 0));
   scene.add(t.mesh);
+  t.pad = makePad();
+  t.pad.position.copy(gw(t.x, t.y, 0));
+  scene.add(t.pad);
+  t.riseT = 0.5;                             // 弹射升起动画
   G.towers.push(t);
   G.towerGrid.set(c + ',' + r, t);
   refreshFlow();
@@ -1181,6 +1270,7 @@ function sellTower(t) {
   const back = Math.round(t.invested * 0.7);
   G.money += back;
   scene.remove(t.mesh);
+  if (t.pad) scene.remove(t.pad);
   G.towers = G.towers.filter(x => x !== t);
   G.towerGrid.delete(t.c + ',' + t.r);
   refreshFlow();
@@ -1395,6 +1485,8 @@ function startWave() {
   }
   G.spawnT = 0;
   if (waveHasBoss(G.wave)) {
+    cityDown = true;
+    announce('要塞都市转换 · 装甲大楼收纳', '#ff9a3d', 17);
     SFX.alarm();
     const w = document.getElementById('warning');
     w.classList.add('on');
@@ -1422,6 +1514,7 @@ function updateWave(dt) {
     G.money += bonus;
     announce('波次肃清 · 补给 +' + bonus, '#8dff4d', 18);
     G.state = 'idle';
+    cityDown = false;
     if (G.wave >= TOTAL_WAVES) { gameOver(true); return; }
     if (document.getElementById('chkAuto').checked) G.autoNextT = 3;
     refreshNextWave();
@@ -1444,6 +1537,12 @@ function gameOver(win) {
    ============================================================ */
 function syncMeshes(dt) {
   for (const t of G.towers) {
+    if (t.riseT > 0) {                       // 从弹射井升起
+      t.riseT = Math.max(0, t.riseT - dt);
+      const k = t.riseT / 0.5;
+      t.mesh.position.y = -36 * k * k;
+      if (t.riseT === 0) addParts(t.x, t.y, 2, '#9fb4cc', 8, 55);
+    }
     const tur = t.mesh.getObjectByName('turret');
     if (tur) tur.rotation.y = -t.angle;
     const fins = t.mesh.getObjectByName('fins');
@@ -1516,6 +1615,10 @@ function syncMeshes(dt) {
       if (o.isMesh) o.material.emissiveIntensity = act ? 1.6 : 0.35;
     });
   }
+  for (const b of cityBuildings) {          // 要塞都市转换
+    const ty = cityDown ? -(b.h + 3) : 0;
+    b.grp.position.y += (ty - b.grp.position.y) * Math.min(1, dt * 2.0);
+  }
   baseGroup.rotation.y = G.time * 0.25;
 }
 
@@ -1566,7 +1669,7 @@ function drawOverlay() {
     }
   }
   const bp = toScreen(goalPx.x, goalPx.y, 56);
-  if (bp) { octx.fillStyle = '#b18aff'; octx.fillText('本部', bp.x, bp.y); }
+  if (bp) { octx.fillStyle = '#b18aff'; octx.fillText('NERV 本部', bp.x, bp.y); }
   // 不可部署提示
   if (G.placing && mouse.c >= 0 && !(canBuild(mouse.c, mouse.r) && G.money >= TOWERS[G.placing].cost)) {
     const p = toScreen((mouse.c + 0.5) * CELL, (mouse.r + 0.5) * CELL, 50);
