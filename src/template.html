@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>机甲防线 MECHA FRONTLINE — 3D 迷宫塔防</title>
+<style>
+  :root{
+    --bg:#07090d; --panel:#10151d; --panel2:#161d27; --line:#233042;
+    --green:#8dff4d; --purple:#9a6bff; --orange:#ff7a1a; --red:#ff3b3b;
+    --cyan:#4dd7ff; --text:#d7e3ee; --dim:#7d8ea0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; user-select:none;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    display:flex; flex-direction:column; align-items:center; min-height:100vh;
+  }
+  header{
+    width:100%; max-width:1380px; padding:10px 14px 6px;
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  }
+  header h1{
+    font-size:22px; letter-spacing:4px; color:var(--green);
+    text-shadow:0 0 12px rgba(141,255,77,.45); font-weight:800;
+  }
+  header .sub{color:var(--dim); font-size:12px; letter-spacing:2px;}
+  #topbar{
+    width:100%; max-width:1380px; display:flex; gap:10px; flex-wrap:wrap;
+    padding:6px 14px; align-items:center;
+  }
+  .stat{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:5px 12px; font-size:14px; display:flex; gap:6px; align-items:center;
+  }
+  .stat b{color:var(--green); font-variant-numeric:tabular-nums;}
+  .stat.hp b{color:var(--orange);}
+  .stat.wave b{color:var(--cyan);}
+  button{
+    background:var(--panel2); color:var(--text); border:1px solid var(--line);
+    border-radius:6px; padding:6px 14px; font-size:14px; cursor:pointer;
+    font-family:inherit; transition:all .12s;
+  }
+  button:hover:not(:disabled){border-color:var(--green); color:var(--green);}
+  button:disabled{opacity:.35; cursor:not-allowed;}
+  button.primary{background:#1d3016; border-color:var(--green); color:var(--green); font-weight:700;}
+  button.primary:hover:not(:disabled){box-shadow:0 0 12px rgba(141,255,77,.35);}
+  #layout{
+    display:flex; gap:12px; padding:6px 14px 20px; width:100%; max-width:1380px;
+    align-items:flex-start; flex-wrap:wrap;
+  }
+  #stage{position:relative; flex:1 1 720px; min-width:340px;}
+  canvas#gl{
+    width:100%; display:block; border:1px solid var(--line); border-radius:8px;
+    background:#05070c; cursor:crosshair;
+  }
+  canvas#ov{
+    position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:3;
+  }
+  #warning{
+    position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+    pointer-events:none; z-index:5;
+  }
+  #warning.on{display:flex;}
+  #warning .band{
+    width:100%; text-align:center; font-size:32px; font-weight:900; letter-spacing:8px;
+    color:#000; background:repeating-linear-gradient(45deg,var(--orange) 0 26px,#1a1a1a 26px 52px);
+    padding:10px 0; animation:blink .5s steps(2) infinite;
+  }
+  #warning .band span{background:rgba(0,0,0,.78); color:var(--orange); padding:2px 18px;}
+  @keyframes blink{50%{opacity:.35;}}
+  #sidebar{
+    flex:0 0 280px; display:flex; flex-direction:column; gap:10px; min-width:260px;
+  }
+  .box{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px;}
+  .box h3{font-size:13px; color:var(--dim); letter-spacing:2px; margin-bottom:8px;}
+  #shop{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .card{
+    background:var(--panel2); border:1px solid var(--line); border-radius:8px;
+    padding:8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;
+    transition:all .12s; position:relative;
+  }
+  .card:hover{border-color:var(--cyan);}
+  .card.sel{border-color:var(--green); box-shadow:0 0 10px rgba(141,255,77,.3);}
+  .card.poor{opacity:.4;}
+  .card .nm{font-size:12px; font-weight:700; text-align:center; line-height:1.2;}
+  .card .cost{font-size:12px; color:var(--green);}
+  .card .hk{position:absolute; top:3px; left:6px; font-size:10px; color:var(--dim);}
+  #info{min-height:150px; font-size:13px; line-height:1.55;}
+  #info .tname{font-weight:800; color:var(--cyan); font-size:15px;}
+  #info .desc{color:var(--dim); font-size:12px; margin:4px 0 6px;}
+  #info .row{display:flex; justify-content:space-between;}
+  #info .row b{color:var(--text); font-variant-numeric:tabular-nums;}
+  #info .btns{display:flex; gap:8px; margin-top:8px;}
+  #info .btns button{flex:1;}
+  #nextwave{font-size:12px; color:var(--dim); line-height:1.6;}
+  #nextwave b{color:var(--orange);}
+  #overlay{
+    position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+    background:rgba(5,8,12,.85); z-index:10; border-radius:8px; flex-direction:column; gap:14px;
+  }
+  #overlay.on{display:flex;}
+  #overlay .big{font-size:42px; font-weight:900; letter-spacing:8px;}
+  #overlay .big.win{color:var(--green); text-shadow:0 0 20px rgba(141,255,77,.6);}
+  #overlay .big.lose{color:var(--red); text-shadow:0 0 20px rgba(255,59,59,.6);}
+  #overlay .detail{color:var(--dim); font-size:14px;}
+  footer{color:#3b4a5c; font-size:11px; padding:0 14px 16px; max-width:1380px; line-height:1.8; text-align:center;}
+  kbd{background:var(--panel2); border:1px solid var(--line); border-radius:4px; padding:0 5px; font-size:11px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>机甲防线</h1>
+  <div class="sub">MECHA FRONTLINE — 使徒迎击作战 · 真3D 战场 · 迷宫塔防 × 亲自驾驶</div>
+</header>
+
+<div id="topbar">
+  <div class="stat">💰 资金 <b id="uiMoney">0</b></div>
+  <div class="stat hp">🏰 本部耐久 <b id="uiLives">0</b></div>
+  <div class="stat wave">📡 波次 <b id="uiWave">0/20</b></div>
+  <div class="stat">💥 击破 <b id="uiKills">0</b></div>
+  <button id="btnWave" class="primary">▶ 出击 (空格)</button>
+  <button id="btnPause">⏸ 暂停</button>
+  <button id="btnSpeed">⏩ 1x</button>
+  <button id="btnView">⟲ 视角 (R)</button>
+  <button id="btnSound">🔊</button>
+  <label style="font-size:12px;color:var(--dim);display:flex;align-items:center;gap:4px;">
+    <input type="checkbox" id="chkAuto"> 自动下一波
+  </label>
+</div>
+
+<div id="layout">
+  <div id="stage">
+    <canvas id="gl"></canvas>
+    <canvas id="ov"></canvas>
+    <div id="warning"><div class="band"><span>⚠ WARNING · 检测到使徒级目标 ⚠</span></div></div>
+    <div id="overlay">
+      <div class="big" id="ovTitle"></div>
+      <div class="detail" id="ovDetail"></div>
+      <button class="primary" id="btnRestart" style="font-size:16px;padding:10px 30px;">重新作战</button>
+    </div>
+  </div>
+  <div id="sidebar">
+    <div class="box">
+      <h3>▍机体格纳库 · 点击后在地图部署</h3>
+      <div id="shop"></div>
+    </div>
+    <div class="box">
+      <h3>▍机体信息</h3>
+      <div id="info"></div>
+    </div>
+    <div class="box">
+      <h3>▍战术情报</h3>
+      <div id="nextwave"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <b style="color:#7d8ea0">视角</b>：<b>右键拖动</b> 旋转镜头 · <b>滚轮</b> 缩放 · <kbd>R</kbd> 重置 · 右键轻点取消部署/选中<br>
+  <b style="color:#7d8ea0">迷宫战术</b>：地图无固定道路，部署的机体会阻挡地面敌军——修迷宫拖延敌人（不能堵死出路；飞行单位直线突进）· 第 7 波起北侧开放第二入侵口<br>
+  <b style="color:#7d8ea0">指挥机</b>：<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>/方向键 机动（跟随镜头方向） · <kbd>E</kbd> 光束回旋斩 · 点击可强化 · 击坠后 8 秒重生 ·
+  数字键 <kbd>1</kbd>-<kbd>6</kbd> 选机体 · <kbd>空格</kbd> 出击 · <kbd>P</kbd> 暂停 · 出售返还 70%
+</footer>
+
+<script>
+/*__THREE__*/
+</script>
+<script>
+/*__GAME__*/
+</script>
+</body>
+</html>
