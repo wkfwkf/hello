@@ -112,7 +112,7 @@
 <body>
 <header>
   <h1>机甲防线</h1>
-  <div class="sub">MECHA FRONTLINE — 使徒迎击作战 · 真3D 战场 · 迷宫塔防 × 亲自驾驶</div>
+  <div class="sub">MECHA FRONTLINE — 使徒迎击作战 · EVA全机出击 · 真3D 迷宫塔防 × 亲自驾驶</div>
 </header>
 
 <div id="topbar">
@@ -159,8 +159,8 @@
 
 <footer>
   <b style="color:#7d8ea0">视角</b>：<b>右键拖动</b> 旋转镜头 · <b>滚轮</b> 缩放 · <kbd>R</kbd> 重置 · 右键轻点取消部署/选中<br>
-  <b style="color:#7d8ea0">迷宫战术</b>：地图无固定道路，部署的机体会阻挡地面敌军——修迷宫拖延敌人（不能堵死出路；飞行单位直线突进）· 第 7 波起北侧开放第二入侵口<br>
-  <b style="color:#7d8ea0">指挥机</b>：<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>/方向键 机动（跟随镜头方向） · <kbd>E</kbd> 光束回旋斩 · 点击可强化 · 击坠后 8 秒重生 ·
+  <b style="color:#7d8ea0">迷宫战术</b>：地图无固定道路，部署的EVA会阻挡地面使徒——修迷宫拖延敌人（不能堵死出路；飞行使徒直线突进）· 第 7 波起北侧开放第二入侵口<br>
+  <b style="color:#7d8ea0">初号机</b>：<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>/方向键 机动（跟随镜头方向） · <kbd>E</kbd> 暴走（范围冲击） · 点击可强化 · 机能停止后 8 秒再启动 ·
   数字键 <kbd>1</kbd>-<kbd>6</kbd> 选机体 · <kbd>空格</kbd> 出击 · <kbd>P</kbd> 暂停 · 出售返还 70%
 </footer>
 
@@ -200,38 +200,38 @@ function isReserved(c, r) {
 /* ---------- 机体（塔）定义 ---------- */
 const TOWERS = {
   gm: {
-    name:'量产型MS·吉姆改', cost:100,
-    desc:'廉价量产机，90mm机枪高射速点射。迷宫墙体兼杂鱼收割机。',
+    name:'EVA量产机', cost:100,
+    desc:'SEELE量产型EVA，白色无眼机体。机枪高射速点射，成群列阵兼作迷宫壁。',
     range:[125,135,150], dmg:[12,21,36], rate:[0.32,0.28,0.24], pierce:0,
     up:[80,150], kind:'gun', air:true, muzzle:22
   },
   sniper: {
-    name:'狙击AS·野蛮人改', cost:180,
-    desc:'全金属狂潮式AS装甲，超远程线膛狙击炮，完全穿透装甲。',
+    name:'EVA零号机', cost:180,
+    desc:'零号机（改）。阳电子狙击枪超远程精确射击，完全穿透使徒装甲——八岛作战再现。',
     range:[250,270,290], dmg:[90,155,265], rate:[1.8,1.7,1.6], pierce:1,
     up:[150,260], kind:'snipe', air:true, muzzle:20
   },
   funnel: {
-    name:'浮游炮·感应终端', cost:260,
-    desc:'新人类专用感应炮，同时锁定 3 个目标发射光束。',
+    name:'EVA8号机', cost:260,
+    desc:'8号机。多联装转管机炮同时锁定 3 个目标扫射。',
     range:[165,180,195], dmg:[15,26,44], rate:[0.5,0.45,0.4], pierce:0.5,
     up:[210,360], kind:'funnel', air:true, muzzle:18
   },
   cannon: {
-    name:'重炮型·钢坦克II', cost:220,
-    desc:'双联装榴弹炮，范围溅射，克制密集地面编队。⚠ 无法对空。',
+    name:'EVA二号机', cost:220,
+    desc:'2号机，近接战特化。肩扛火箭炮范围溅射，克制密集地面使徒。⚠ 无法对空。',
     range:[155,168,182], dmg:[38,66,110], rate:[1.4,1.3,1.2], pierce:0, splash:[62,74,88],
     up:[180,320], kind:'cannon', air:false, muzzle:14
   },
   atfield: {
-    name:'AT力场干扰塔', cost:150,
-    desc:'展开反AT力场，大幅减速范围内所有敌机（含飞行）。不造成伤害。',
+    name:'EVA Mark.06', cost:150,
+    desc:'月面制造的Mark.06。头顶光环展开反A.T.力场，大幅减速范围内使徒（含飞行）。不造成伤害。',
     range:[105,122,140], dmg:[0,0,0], rate:[1,1,1], pierce:0, slow:[0.58,0.46,0.34],
     up:[130,220], kind:'slow', air:true, muzzle:20
   },
   eva: {
-    name:'EVA初号机', cost:550,
-    desc:'泛用人型决战兵器。阳电子步枪，15%几率暴走造成3倍伤害。',
+    name:'EVA第13号机', cost:550,
+    desc:'禁忌的13号机。双管步枪高出力射击，15%几率觉醒造成3倍伤害。',
     range:[195,210,225], dmg:[200,340,560], rate:[2.2,2.0,1.8], pierce:0.6,
     up:[420,720], kind:'eva', air:true, muzzle:26
   }
@@ -249,13 +249,13 @@ const HERO_ABILITY_CD = 8, HERO_ABILITY_R = 95;
 
 /* ---------- 敌机定义 ---------- */
 const ENEMIES = {
-  drone:  { name:'无人侦察机', hp:42,  spd:95,  armor:0,  bounty:8,   r:9,  fly:true  },
-  soldier:{ name:'扎古式量产机', hp:105, spd:62,  armor:2,  bounty:13,  r:12, fly:false },
-  runner: { name:'高速强袭型', hp:70,  spd:135, armor:0,  bounty:11,  r:10, fly:false },
-  heavy:  { name:'重装AS装甲', hp:320, spd:40,  armor:9,  bounty:28,  r:14, fly:false },
-  gunship:{ name:'武装直升机', hp:230, spd:58,  armor:4,  bounty:24,  r:13, fly:true  },
-  angel:  { name:'使徒·雏体',  hp:1600,spd:32,  armor:6,  bounty:160, r:20, fly:false, boss:true, shield:420,  regen:32 },
-  bigangel:{name:'使徒·雷天使',hp:7000,spd:25,  armor:12, bounty:600, r:28, fly:false, boss:true, shield:1600, regen:65 }
+  drone:  { name:'第4使徒·沙姆谢尔', hp:42,  spd:95,  armor:0,  bounty:8,   r:9,  fly:true  },
+  soldier:{ name:'第3使徒·萨基尔', hp:105, spd:62,  armor:2,  bounty:13,  r:12, fly:false },
+  runner: { name:'第9使徒·马特里尔', hp:70,  spd:135, armor:0,  bounty:11,  r:10, fly:false },
+  heavy:  { name:'第13使徒·巴尔迪尔', hp:320, spd:40,  armor:9,  bounty:28,  r:14, fly:false },
+  gunship:{ name:'第10使徒·萨哈魁尔', hp:230, spd:58,  armor:4,  bounty:24,  r:13, fly:true  },
+  angel:  { name:'第5使徒·拉米尔',  hp:1600,spd:32,  armor:6,  bounty:160, r:20, fly:false, boss:true, shield:420,  regen:32 },
+  bigangel:{name:'第14使徒·塞路尔',hp:7000,spd:25,  armor:12, bounty:600, r:28, fly:false, boss:true, shield:1600, regen:65 }
 };
 
 /* ---------- 波次 ---------- */
@@ -436,7 +436,8 @@ function P(parent, kind, a, m, x, y, z, rx, ry, rz) {
 
 /* ============================================================
    程序化机体模型（Y 轴向上，机体面朝 +X）
-   turret 命名组 = 可旋转上半身/炮塔
+   我方 = NERV 侧 EVA 机体；敌方 = 使徒
+   turret 命名组 = 可旋转上半身
    ============================================================ */
 function twoLegs(g, col, h, spread, rTop, rBot) {
   P(g, 'cyl', [rTop, rBot, h, 8], mat(col), 0, h/2, spread);
@@ -444,227 +445,247 @@ function twoLegs(g, col, h, spread, rTop, rBot) {
   P(g, 'box', [rBot*2.6, 1.6, rBot*2.4], mat(col), 1, 0.8, spread);
   P(g, 'box', [rBot*2.6, 1.6, rBot*2.4], mat(col), 1, 0.8, -spread);
 }
-function buildGM() {
+/* EVA 通用骨架：双腿/骨盆/躯干/肩甲/垂臂/头 */
+function evaBody(c) {
   const g = new THREE.Group();
-  twoLegs(g, 0x8a949c, 9, 4, 2.0, 2.4);
-  P(g, 'box', [7, 3.5, 10], mat(0xc8d2cc), 0, 10.5, 0);
-  const tur = new THREE.Group(); tur.name = 'turret'; tur.position.y = 12.5; g.add(tur);
-  P(tur, 'box', [8, 8, 10], mat(0xc8d2cc), 0, 4, 0);                     // 躯干
-  P(tur, 'box', [8.6, 3.6, 10.6], mat(0xc0392b), 0.4, 4.4, 0);           // 红色胸甲
-  P(tur, 'box', [3, 6, 7], mat(0x6f7a80), -5.5, 4.5, 0);                 // 背包
-  P(tur, 'cyl', [1, 1, 4, 6], mat(0x6f7a80), -6, 8.5, 2, Math.PI/2, 0, 0);
-  P(tur, 'box', [5, 4.5, 4.5], mat(0xb8c2bc), 0, 5, 7);                  // 肩
-  P(tur, 'box', [5, 4.5, 4.5], mat(0xb8c2bc), 0, 5, -7);
-  P(tur, 'box', [4.4, 4, 4.8], mat(0xdfe6e2), 0, 10.4, 0);               // 头
-  P(tur, 'box', [1, 1.6, 4], emat(0xff7ad9, 2.2), 2.3, 10.8, 0);         // 粉色护目镜
-  P(tur, 'cyl', [0.8, 0.9, 13, 8], mat(0x3a4046), 8, 3.5, 4.5, 0, 0, Math.PI/2); // 机枪
-  P(tur, 'box', [3, 2, 2], mat(0x3a4046), 4, 3.5, 4.5);
+  twoLegs(g, c.leg, 11, 3.6, 1.7, 2.1);
+  P(g, 'box', [6, 3, 8.5], mat(c.main), 0, 12.5, 0);
+  const tur = new THREE.Group(); tur.name = 'turret'; tur.position.y = 14; g.add(tur);
+  P(tur, 'box', [6.5, 9, 7.5], mat(c.main), 0, 4.5, 0);                  // 躯干
+  P(tur, 'box', [2.4, 4, 5.2], mat(c.chest), 2.8, 4.8, 0);               // 胸甲
+  P(tur, 'box', [4.2, 6, 3.6], mat(c.pylon), 0, 6.8, 5.8);               // 肩部Pylon
+  P(tur, 'box', [4.2, 6, 3.6], mat(c.pylon), 0, 6.8, -5.8);
+  P(tur, 'cyl', [1.05, 1.2, 9, 6], mat(c.leg), 0, 1.5, 5.8);             // 垂臂
+  P(tur, 'cyl', [1.05, 1.2, 9, 6], mat(c.leg), 0, 1.5, -5.8);
+  const head = new THREE.Group(); head.name = 'head'; head.position.y = 11.4; tur.add(head);
+  P(head, 'box', [3.4, 3.6, 4.2], mat(c.main), 0, 0, 0);
+  return { g, tur, head };
+}
+
+/* --- EVA量产机：白色无眼圆头 + 折叠翼 + 机枪 --- */
+function buildMassProd() {
+  const c = { main: 0xcfd4cd, leg: 0x8f978d, pylon: 0xb9c0b6, chest: 0x9aa398 };
+  const { g, tur, head } = evaBody(c);
+  head.clear();
+  P(head, 'sph', [2.4, 12, 10], mat(0xe2e6df), 0.4, 0.2, 0).scale.set(1.5, 1.05, 1.05); // 无眼圆头
+  P(head, 'box', [1.2, 2.2, 0.5], mat(0x3a3f3a), 3.4, -0.7, 0);          // 竖直嘴缝
+  P(tur, 'box', [1.2, 9, 5], mat(0xc4cabf), -4.8, 6.5, 3.6, 0.55, 0, -0.45);  // 折叠翼
+  P(tur, 'box', [1.2, 9, 5], mat(0xc4cabf), -4.8, 6.5, -3.6, -0.55, 0, -0.45);
+  P(tur, 'cyl', [0.7, 0.8, 12, 6], mat(0x4a4f4a), 7.5, 3.5, 4.2, 0, 0, Math.PI/2); // 机枪
+  P(tur, 'box', [3, 2, 2], mat(0x4a4f4a), 3.5, 3.5, 4.2);
   return g;
 }
-function buildSniper() {
-  const g = new THREE.Group();
-  twoLegs(g, 0x6b5e40, 8, 5, 2.4, 3);
-  P(g, 'box', [9, 3.5, 12], mat(0x8a7a55), 0, 9.5, 0);
-  const tur = new THREE.Group(); tur.name = 'turret'; tur.position.y = 11.5; g.add(tur);
-  P(tur, 'box', [9, 7.5, 11], mat(0x8a7a55), 0, 3.5, 0);
-  P(tur, 'box', [6, 5, 5], mat(0x9c8c62), 0, 4, 7.5);
-  P(tur, 'box', [6, 5, 5], mat(0x9c8c62), 0, 4, -7.5);
-  P(tur, 'box', [5, 4, 5], mat(0x7a6c48), 0, 9.5, 0);                    // 头
-  P(tur, 'box', [1, 1.4, 3.6], emat(0x8dff4d, 1.8), 2.6, 9.8, 0);        // 传感器
-  P(tur, 'cyl', [0.35, 0.35, 3.5, 6], mat(0x555), -1, 13, 0);            // 天线
-  P(tur, 'cyl', [0.65, 0.85, 24, 8], mat(0x3b3b3b), 12, 5, 4, 0, 0, Math.PI/2); // 狙击炮
-  P(tur, 'box', [4, 2.4, 2.4], mat(0x2e2e2e), 2, 5, 4);
-  P(tur, 'cyl', [1.3, 1.3, 3, 8], mat(0x2e2e2e), 22, 5, 4, 0, 0, Math.PI/2);    // 制退器
-  P(tur, 'cyl', [0.9, 0.9, 2.4, 8], emat(0xff5a5a, 1.6), 4, 7.2, 4, 0, 0, Math.PI/2); // 瞄准镜
+/* --- EVA零号机(改)：蓝色 + 单眼 + 阳电子狙击枪 --- */
+function buildEva00() {
+  const c = { main: 0x2e62c8, leg: 0x24488f, pylon: 0xe8ecf0, chest: 0xd8dde2 };
+  const { g, tur, head } = evaBody(c);
+  head.clear();
+  P(head, 'sph', [2.3, 12, 10], mat(0x3a6ed0), 0.3, 0.2, 0).scale.set(1.35, 1.05, 1);
+  P(head, 'sph', [0.85, 8, 6], emat(0xff4a3a, 2.6), 3.0, 0.4, 0);        // 红色单眼
+  P(head, 'box', [2.2, 0.7, 3.6], mat(0xe8ecf0), 0.8, 2.1, 0);           // 白色头饰带
+  P(tur, 'cyl', [0.62, 0.8, 26, 8], mat(0x33383f), 13, 4.5, 4.6, 0, 0, Math.PI/2); // 阳电子狙击枪
+  P(tur, 'box', [5, 2.6, 2.6], mat(0x282c31), 3, 4.5, 4.6);              // 枪机
+  P(tur, 'cyl', [1.15, 1.15, 3, 8], mat(0x282c31), 24.5, 4.5, 4.6, 0, 0, Math.PI/2);
+  P(tur, 'cyl', [0.8, 0.8, 2, 8], emat(0xffb04d, 1.6), 5, 6.6, 4.6, 0, 0, Math.PI/2); // 瞄准镜
   return g;
 }
-function buildFunnel() {
+/* --- EVA8号机：粉色 + 绿色护目镜 + 加特林转管炮 --- */
+function buildEva08() {
+  const c = { main: 0xdd6ba2, leg: 0xb04f7e, pylon: 0xf2e9ee, chest: 0xe9c8d8 };
+  const { g, tur, head } = evaBody(c);
+  P(head, 'box', [1.2, 1.6, 4.4], emat(0x51e87a, 2.0), 1.6, 0.3, 0);     // 绿色护目镜
+  P(head, 'box', [1.6, 0.8, 2.4], mat(0xf2e9ee), 0.8, 2.2, 0);
+  const drum = new THREE.Group(); drum.name = 'drum';
+  drum.position.set(8, 4.5, 4.8); drum.rotation.z = Math.PI / 2; tur.add(drum);
+  P(drum, 'cyl', [1.7, 1.7, 3, 8], mat(0x2b2f35), 0, 1, 0);              // 炮座
+  for (let i = 0; i < 4; i++) {
+    const a = i * Math.PI / 2;
+    P(drum, 'cyl', [0.5, 0.5, 12, 6], mat(0x33383f), Math.cos(a) * 1.1, -4, Math.sin(a) * 1.1);
+  }
+  P(tur, 'box', [4, 2.6, 2.6], mat(0x2b2f35), 3.5, 4.5, 4.8);
+  return g;
+}
+/* --- EVA二号机：红色 + 头冠 + 火箭炮 --- */
+function buildEva02() {
+  const c = { main: 0xd8332a, leg: 0xa22019, pylon: 0xf0e6d4, chest: 0xe8b93a };
+  const { g, tur, head } = evaBody(c);
+  P(head, 'box', [2.8, 2.8, 0.8], mat(0xf0e6d4), 0.2, 2.9, 0);           // 标志性头冠
+  P(head, 'box', [0.7, 1.0, 3.4], emat(0x74f04a, 2.4), 1.9, 0.5, 0);     // 四眼帯
+  P(tur, 'cyl', [2.0, 2.2, 18, 8], mat(0x2c2c30), 6, 9.8, 3.9, 0, 0, Math.PI/2);   // 肩扛火箭炮
+  P(tur, 'cyl', [2.5, 2.5, 2.4, 8], mat(0x1d1d20), 15.5, 9.8, 3.9, 0, 0, Math.PI/2);
+  P(tur, 'box', [3, 2, 2], emat(0xffd24d, 1.2), -3, 9.8, 3.9);           // 尾部观瞄
+  return g;
+}
+/* --- EVA Mark.06：藏青 + 金色光环（反A.T.力场） --- */
+function buildMark06() {
+  const c = { main: 0x272a52, leg: 0x1d2040, pylon: 0x3c3f72, chest: 0x14162e };
+  const { g, tur, head } = evaBody(c);
+  P(head, 'box', [0.7, 0.9, 3.2], emat(0xffb04d, 1.6), 1.9, 0.4, 0);     // 橙色眼帯
+  P(head, 'cone', [0.5, 3, 5], mat(0xd8b64a), 0, 3.4, 1.4, 0, 0, 0);     // 金色冠饰
+  P(head, 'cone', [0.5, 3, 5], mat(0xd8b64a), 0, 3.4, -1.4, 0, 0, 0);
+  const halo = P(tur, 'tor', [4.6, 0.4, 8, 28], emat(0xffd24d, 2.2), 0, 19, 0, Math.PI/2, 0, 0);
+  halo.name = 'ring'; halo.castShadow = false;                           // 头顶光环
+  P(tur, 'cyl', [0.4, 0.4, 18, 6], mat(0x8a8f9a), 4, 4, -4.6, 0, 0, Math.PI/2);   // 长枪
+  return g;
+}
+/* --- EVA第13号机：灰紫 + 双管步枪，「觉醒」 --- */
+function buildEva13() {
+  const c = { main: 0x4c4668, leg: 0x373250, pylon: 0x9aa0aa, chest: 0x2c2840 };
+  const { g, tur, head } = evaBody(c);
+  P(head, 'box', [0.7, 0.8, 1.4], emat(0x39ff6a, 2.6), 1.9, 0.6, 1.2);   // 双对绿眼
+  P(head, 'box', [0.7, 0.8, 1.4], emat(0x39ff6a, 2.6), 1.9, 0.6, -1.2);
+  P(head, 'box', [0.7, 0.6, 1.2], emat(0x39ff6a, 2.0), 1.9, -0.6, 0);
+  P(head, 'cone', [0.45, 3.4, 5], mat(0xd9dee6), 0.6, 3.2, 1.0, 0, 0, -0.3); // 双小角
+  P(head, 'cone', [0.45, 3.4, 5], mat(0xd9dee6), 0.6, 3.2, -1.0, 0, 0, -0.3);
+  P(tur, 'box', [0.5, 7.5, 0.5], emat(0x39ff6a, 1.5), 3.35, 4, 2.4);     // 躯干发光线
+  P(tur, 'box', [0.5, 7.5, 0.5], emat(0x39ff6a, 1.5), 3.35, 4, -2.4);
+  P(tur, 'cyl', [0.75, 0.9, 17, 8], mat(0x1d1d22), 10, 4.2, 4.6, 0, 0, Math.PI/2); // 双管步枪
+  P(tur, 'cyl', [0.75, 0.9, 17, 8], mat(0x1d1d22), 10, 6.2, 4.6, 0, 0, Math.PI/2);
+  P(tur, 'box', [4.5, 4, 2.8], mat(0x2b3036), 3.5, 5.2, 4.6);
+  return g;
+}
+/* --- EVA初号机（玩家机）：紫 + 绿甲 + 独角，暴走 --- */
+function buildHero() {
+  const c = { main: 0x5a3aa0, leg: 0x3b2a72, pylon: 0xe8ecf0, chest: 0x2aa84a };
+  const { g, tur, head } = evaBody(c);
+  P(head, 'box', [0.8, 0.9, 1.3], emat(0x39ff6a, 2.8), 1.85, 0.5, 1.15); // 绿色双眼
+  P(head, 'box', [0.8, 0.9, 1.3], emat(0x39ff6a, 2.8), 1.85, 0.5, -1.15);
+  P(head, 'cone', [0.55, 7, 6], mat(0xe8ecf0), 1.0, 4.2, 0, 0, 0, -0.55);// 独角
+  P(head, 'box', [1.4, 0.7, 2.6], mat(0x2aa84a), 0.6, 2.1, 0);           // 绿色头饰
+  P(tur, 'box', [0.6, 5.5, 3.8], emat(0x39ff6a, 1.4), -3.55, 5, 5.8);    // 肩甲绿纹
+  P(tur, 'box', [0.6, 5.5, 3.8], emat(0x39ff6a, 1.4), -3.55, 5, -5.8);
+  P(tur, 'sph', [1.1, 8, 6], emat(0x39ff6a, 2.2), 3.4, 2.2, 0);          // 核心指示
+  P(tur, 'box', [3, 5.5, 6.5], mat(0x3a3f46), -5, 4.5, 0);               // 背部组件
+  const fl1 = P(tur, 'cone', [1.1, 6, 6], emat(0x4dd7ff, 2.2), -7.2, 3, 2, 0, 0, Math.PI/2);
+  const fl2 = P(tur, 'cone', [1.1, 6, 6], emat(0x4dd7ff, 2.2), -7.2, 3, -2, 0, 0, Math.PI/2);
+  fl1.name = 'flame1'; fl2.name = 'flame2';
+  P(tur, 'cyl', [0.75, 0.85, 15, 8], mat(0x22262b), 9, 4, 4.8, 0, 0, Math.PI/2);   // 步枪
+  P(tur, 'box', [3.5, 2.2, 2.2], mat(0x2b3036), 3.5, 4, 4.8);
+  return g;
+}
+
+/* ============ 使徒 ============ */
+/* --- 第4使徒 沙姆谢尔：悬浮圆筒 + 发光能量触鞭 --- */
+function buildShamshel() {
   const g = new THREE.Group();
-  P(g, 'cyl', [8, 10.5, 5, 6], mat(0x5a6472), 0, 2.5, 0);
-  P(g, 'cyl', [5.5, 7, 5, 6], mat(0x7f8a99), 0, 7.5, 0);
-  P(g, 'cyl', [3.2, 4.5, 7, 6], mat(0xe8ecf2), 0, 13, 0);
-  P(g, 'sph', [3.4, 16, 12], emat(0x4dd7ff, 2.2), 0, 18.5, 0);           // 感应核心
-  P(g, 'tor', [5.4, 0.5, 8, 24], mat(0xb8c2cc), 0, 18.5, 0, Math.PI/2, 0, 0);
-  const fins = new THREE.Group(); fins.name = 'fins'; fins.position.y = 16; g.add(fins);
-  for (let i = 0; i < 3; i++) {
-    const a = i * Math.PI * 2 / 3;
-    const fin = new THREE.Group();
-    fin.position.set(Math.cos(a) * 13, 0, Math.sin(a) * 13);
-    fin.rotation.y = -a;
-    P(fin, 'box', [1.6, 7, 3], mat(0xe8ecf2), 0, 0, 0);
-    P(fin, 'cone', [1.1, 2.6, 4], mat(0xff7ad9), 0, -4.5, 0, Math.PI, 0, 0);
-    P(fin, 'sph', [0.9, 8, 6], emat(0xff7ad9, 2.4), 0, -5.6, 0);
-    fins.add(fin);
+  P(g, 'cap', [3.6, 13, 6, 10], mat(0xb59ad2), 0, 0, 0, 0, 0, Math.PI/2);      // 横置躯体
+  P(g, 'sph', [3.9, 10, 8], mat(0x51455f), 8, 0, 0).scale.set(0.75, 1, 1);     // 前端钝头
+  P(g, 'sph', [1.6, 8, 6], emat(0xff3b3b, 2.4), 1.5, -3.6, 0);                 // 核心
+  for (const s of [1, -1]) {
+    P(g, 'cyl', [0.38, 0.55, 9, 5], emat(0xff8ad9, 1.4), 4.5, -6, s*2.2, 0, 0, 0.55);   // 触鞭上段
+    P(g, 'cyl', [0.24, 0.36, 9, 5], emat(0xffb3e6, 1.8), 8, -12.5, s*2.7, 0, 0, 0.2);   // 触鞭下段
   }
   return g;
 }
-function buildCannon() {
+/* --- 第3使徒 萨基尔：长臂人形 + 白色鸟面 + 红核心 --- */
+function buildSachiel() {
   const g = new THREE.Group();
-  P(g, 'box', [17, 5, 5.5], mat(0x22303c), 0, 2.5, 7.5);                 // 履带
-  P(g, 'box', [17, 5, 5.5], mat(0x22303c), 0, 2.5, -7.5);
-  P(g, 'box', [17.6, 1.6, 6], mat(0x161f28), 0, 5.4, 7.5);
-  P(g, 'box', [17.6, 1.6, 6], mat(0x161f28), 0, 5.4, -7.5);
-  P(g, 'box', [14, 5, 11], mat(0x2e5f8a), 0, 6.5, 0);                    // 车体
-  const tur = new THREE.Group(); tur.name = 'turret'; tur.position.y = 9; g.add(tur);
-  P(tur, 'box', [9.5, 5, 9.5], mat(0x3a76aa), -1, 2.5, 0);
-  P(tur, 'cyl', [1.05, 1.25, 17, 8], mat(0x23282e), 8, 4, 2.7, 0, 0, Math.PI/2);
-  P(tur, 'cyl', [1.05, 1.25, 17, 8], mat(0x23282e), 8, 4, -2.7, 0, 0, Math.PI/2);
-  P(tur, 'cyl', [1.5, 1.5, 2.2, 8], mat(0x14181c), 16.5, 4, 2.7, 0, 0, Math.PI/2);
-  P(tur, 'cyl', [1.5, 1.5, 2.2, 8], mat(0x14181c), 16.5, 4, -2.7, 0, 0, Math.PI/2);
-  P(tur, 'box', [3, 1.6, 4], emat(0xffd24d, 1.2), -4.5, 5.8, 0);         // 观瞄
+  twoLegs(g, 0x4e5c49, 12, 3.4, 1.5, 1.9);
+  P(g, 'box', [5.5, 3, 7.5], mat(0x5c6b58), 0, 13.5, 0);
+  P(g, 'box', [5.5, 10, 6.5], mat(0x5c6b58), 0, 19.5, 0);                // 细长躯干
+  P(g, 'cyl', [1, 1.25, 15, 6], mat(0x50604c), 0.5, 14.5, 4.6, 0, 0, 0.08);    // 过膝长臂
+  P(g, 'cyl', [1, 1.25, 15, 6], mat(0x50604c), 0.5, 14.5, -4.6, 0, 0, 0.08);
+  P(g, 'cone', [0.7, 3, 5], mat(0xd8d4c8), 1, 6.5, 4.9, Math.PI, 0, 0);        // 臂端骨刺
+  P(g, 'cone', [0.7, 3, 5], mat(0xd8d4c8), 1, 6.5, -4.9, Math.PI, 0, 0);
+  P(g, 'sph', [2, 10, 8], emat(0xff3b3b, 2.2), 2.9, 16.5, 0);            // 红色核心
+  P(g, 'sph', [2.5, 10, 8], mat(0xe6e2d6), 2.6, 26, 0).scale.set(0.75, 1.35, 0.95);  // 白色鸟面
+  P(g, 'sph', [0.55, 6, 5], mat(0x14140f), 4.1, 26.8, 0.95);             // 眼窝
+  P(g, 'sph', [0.55, 6, 5], mat(0x14140f), 4.1, 26.8, -0.95);
   return g;
 }
-function buildATField() {
+/* --- 第9使徒 马特里尔：蜘蛛型 + 底部巨眼 --- */
+function buildMatariel() {
   const g = new THREE.Group();
-  P(g, 'cyl', [7.5, 10, 4, 6], mat(0x3a2a5e), 0, 2, 0);
-  P(g, 'cyl', [2.2, 5.5, 19, 4], mat(0x5a3f8f), 0, 13.5, 0, 0, Math.PI/4, 0); // 方尖塔
-  const core = P(g, 'octa', [3.4, 0], emat(0xff7a1a, 2.4), 0, 26, 0);
-  core.name = 'core';
-  const ring = P(g, 'tor', [10.5, 0.45, 8, 8], emat(0xff9a3d, 1.6), 0, 20, 0, Math.PI/2, 0, 0);
-  ring.name = 'ring';
+  const dome = P(g, 'sph', [6.5, 14, 10], mat(0x40331f), 0, 13, 0);
+  dome.scale.set(1.25, 0.62, 1.25);
+  for (let i = 0; i < 4; i++) {
+    const leg = new THREE.Group();
+    leg.rotation.y = Math.PI / 4 + i * Math.PI / 2;
+    P(leg, 'cyl', [0.7, 0.95, 13, 6], mat(0x38290f), 5.5, 10.5, 0, 0, 0, 1.0);   // 腿上段(外张)
+    P(leg, 'cyl', [0.45, 0.7, 12, 6], mat(0x2c2010), 10.5, 4, 0, 0, 0, -0.35);   // 腿下段
+    g.add(leg);
+  }
+  P(g, 'sph', [2.6, 10, 8], mat(0xe8e4d8), 4.2, 10.5, 0);                // 垂下的巨眼
+  P(g, 'sph', [1.15, 8, 6], emat(0x8a2020, 2.0), 5.8, 9.9, 0);           // 瞳
+  P(g, 'sph', [1.4, 8, 6], emat(0xff3b3b, 2.2), 0, 16.5, 0);             // 核心
   return g;
 }
-function buildEVA() {
-  const g = new THREE.Group();
-  twoLegs(g, 0x2c2050, 13, 4, 1.9, 2.3);
-  P(g, 'box', [6.5, 3.5, 9], mat(0x4a3580), 0, 14.5, 0);
-  const tur = new THREE.Group(); tur.name = 'turret'; tur.position.y = 16.5; g.add(tur);
-  P(tur, 'box', [7, 10, 8.5], mat(0x4a3580), 0, 5, 0);                   // 紫色躯干
-  P(tur, 'box', [2.6, 4.5, 5.5], emat(0x7CFC00, 1.4), 3, 5.5, 0);        // 绿色胸甲
-  P(tur, 'box', [4, 7.5, 4], mat(0xd9dee6), 0, 6.5, 6.8);                // 白色肩pylon
-  P(tur, 'box', [4, 7.5, 4], mat(0xd9dee6), 0, 6.5, -6.8);
-  P(tur, 'box', [3.4, 3.6, 4.4], mat(0x3a2a66), 0, 12.5, 0);             // 头
-  P(tur, 'box', [0.9, 1.1, 1.4], emat(0x7CFC00, 2.6), 1.9, 13, 1.3);     // 双眼
-  P(tur, 'box', [0.9, 1.1, 1.4], emat(0x7CFC00, 2.6), 1.9, 13, -1.3);
-  P(tur, 'cone', [0.7, 8, 5], mat(0xe8ecf0), 1, 18, 0, 0, 0, -0.35);     // 独角
-  P(tur, 'cyl', [0.9, 1.1, 18, 8], mat(0x1d1d22), 11, 5.5, 4.6, 0, 0, Math.PI/2); // 阳电子步枪
-  P(tur, 'box', [5, 3, 2.6], mat(0x1d1d22), 4, 5.5, 4.6);
+/* --- 第13使徒 巴尔迪尔：黑色寄生EVA + 白色面甲 --- */
+function buildBardiel() {
+  const c = { main: 0x17171c, leg: 0x0f0f13, pylon: 0x24242b, chest: 0x101014 };
+  const { g, tur, head } = evaBody(c);
+  tur.rotation.z = -0.14;                                                // 前倾姿态
+  P(head, 'box', [1, 3, 3.6], mat(0xd9d5c9), 2.0, 0, 0);                 // 白色面甲
+  P(head, 'sph', [0.4, 6, 5], mat(0x0a0a0d), 2.6, 0.6, 0.9);
+  P(head, 'sph', [0.4, 6, 5], mat(0x0a0a0d), 2.6, 0.6, -0.9);
+  P(tur, 'box', [0.5, 7, 0.5], mat(0xcfccc0), 3.35, 3.5, 1.6, 0, 0, 0.25);     // 白色蚀纹
+  P(tur, 'box', [0.5, 5, 0.5], mat(0xcfccc0), 3.35, 3, -1.8, 0, 0, -0.35);
+  P(g, 'box', [0.45, 6, 0.45], mat(0xcfccc0), 1.2, 4, 3.8, 0, 0, 0.2);
+  P(tur, 'sph', [1.9, 10, 8], emat(0xff3b3b, 2.2), 3.0, 1.6, 0);         // 核心
+  P(tur, 'cyl', [1, 1.35, 14, 6], mat(0x101014), 1, -1.5, 5.9, 0, 0, 0.12);    // 垂长臂
+  P(tur, 'cyl', [1, 1.35, 14, 6], mat(0x101014), 1, -1.5, -5.9, 0, 0, 0.12);
   return g;
 }
-function buildHero() {
+/* --- 第10使徒 萨哈魁尔：巨大眼球圆盘（空降型） --- */
+function buildSahaquiel() {
   const g = new THREE.Group();
-  twoLegs(g, 0x2456c4, 9, 3.8, 1.9, 2.3);
-  P(g, 'box', [6.5, 3, 9], mat(0xeef2f6), 0, 10.5, 0);
-  const tur = new THREE.Group(); tur.name = 'turret'; tur.position.y = 12; g.add(tur);
-  P(tur, 'box', [7.5, 8, 9], mat(0xeef2f6), 0, 4, 0);                    // 白色躯干
-  P(tur, 'box', [3.5, 4, 6], mat(0xc0392b), 2.6, 4.5, 0);                // 红色胸甲
-  P(tur, 'box', [2, 2, 2], emat(0xffd24d, 1.2), 3.8, 2, 0);              // 黄色腹部
-  P(tur, 'box', [4.6, 4.4, 4.6], mat(0xeef2f6), 0, 5, 6.8);              // 肩
-  P(tur, 'box', [4.6, 4.4, 4.6], mat(0xeef2f6), 0, 5, -6.8);
-  P(tur, 'box', [3, 5.5, 6.5], mat(0x9aa4ae), -5, 4.5, 0);               // 背包
-  const fl1 = P(tur, 'cone', [1.1, 6, 6], emat(0x4dd7ff, 2.2), -7, 3, 2, 0, 0, Math.PI/2);
-  const fl2 = P(tur, 'cone', [1.1, 6, 6], emat(0x4dd7ff, 2.2), -7, 3, -2, 0, 0, Math.PI/2);
-  fl1.name = 'flame1'; fl2.name = 'flame2';
-  P(tur, 'box', [4.2, 3.8, 4.4], mat(0xf4f7fa), 0, 10.2, 0);             // 头
-  P(tur, 'box', [1, 1.2, 3.4], emat(0x7dffee, 2.6), 2.2, 10.5, 0);       // 眼
-  P(tur, 'box', [0.8, 0.8, 5.5], mat(0xc0392b), 1.2, 12.4, 0);           // 头部红饰
-  const vf1 = P(tur, 'box', [4.5, 0.7, 0.7], mat(0xffd24d), 3.4, 12.6, 1.5, 0, 0.5, 0.25);
-  const vf2 = P(tur, 'box', [4.5, 0.7, 0.7], mat(0xffd24d), 3.4, 12.6, -1.5, 0, -0.5, 0.25);
-  vf1.castShadow = vf2.castShadow = false;                               // V 字天线
-  P(tur, 'cyl', [0.75, 0.85, 15, 8], mat(0x22262b), 9, 4, 4.8, 0, 0, Math.PI/2);  // 光束步枪
-  P(tur, 'box', [3.5, 2.2, 2.2], mat(0x2b3036), 3.5, 4, 4.8);
-  P(tur, 'box', [1.2, 7, 5], mat(0xc0392b), -1, 4.5, -8.6);              // 左臂盾
+  const disc = new THREE.Group(); disc.name = 'octa'; g.add(disc);       // 复用缓旋动画
+  P(disc, 'sph', [15, 18, 12], mat(0xd4551f), 0, 0, 0).scale.set(1, 0.22, 1);  // 橙色主盘
+  P(disc, 'sph', [6.5, 14, 10], mat(0xe8e2d2), 0, 1.6, 0).scale.set(1, 0.5, 1);// 眼白
+  P(disc, 'tor', [4.2, 0.7, 8, 20], mat(0x6e2a12), 0, 3.2, 0, Math.PI/2, 0, 0);// 虹膜环
+  P(disc, 'sph', [2.1, 10, 8], emat(0x2fe86a, 2.2), 0, 3.5, 0);          // 发光瞳
+  P(disc, 'sph', [3.6, 10, 8], mat(0xb3431a), 12, 0, 4).scale.set(1, 0.32, 1); // 外缘裂叶
+  P(disc, 'sph', [3.6, 10, 8], mat(0xb3431a), -9.5, 0, -9.5).scale.set(1, 0.32, 1);
+  P(disc, 'sph', [3.6, 10, 8], mat(0xb3431a), -3, 0, 12.5).scale.set(1, 0.32, 1);
+  P(disc, 'sph', [1.6, 8, 6], emat(0xff3b3b, 2.2), 5.5, -1.8, 0);        // 核心
   return g;
 }
-function buildZaku() {
+/* --- 第5使徒 拉米尔：蓝色正八面体 --- */
+function buildRamiel() {
   const g = new THREE.Group();
-  twoLegs(g, 0x324a28, 8, 3.6, 1.9, 2.3);
-  P(g, 'box', [6.5, 3, 8.5], mat(0x4a6b3a), 0, 9.5, 0);
-  P(g, 'box', [7, 7, 8.5], mat(0x4a6b3a), 0, 14.5, 0);
-  P(g, 'box', [4.5, 4.5, 4.5], mat(0x3a5230), 0, 15.5, 6.5);             // 盾肩
-  const sp = new THREE.Group(); sp.position.set(0, 16, -6.5); g.add(sp); // 尖刺肩甲
-  P(sp, 'box', [5, 4.5, 4], mat(0x3a5230), 0, 0, 0);
-  P(sp, 'cone', [0.9, 3.2, 5], mat(0x556), 0, 3.5, 0);
-  P(sp, 'cone', [0.7, 2.4, 5], mat(0x556), 1.8, 2.6, 0, 0, 0, -0.5);
-  P(g, 'sph', [3.4, 12, 10], mat(0x557a42), 0, 20.5, 0);                 // 头
-  P(g, 'sph', [1.1, 8, 6], emat(0xff7ad9, 2.6), 2.9, 20.7, 0);           // 单眼
-  P(g, 'cyl', [0.7, 0.7, 9, 6], mat(0x2c3a24), 5, 12, 3.5, 0, 0, Math.PI/2); // 机枪
-  P(g, 'cyl', [1.3, 1.3, 6, 8], mat(0x2c3a24), -1, 12, 8, Math.PI/2.4, 0, 0); // 热能斧柄?管束
-  return g;
-}
-function buildDrone() {
-  const g = new THREE.Group();
-  P(g, 'sph', [4.2, 12, 8], mat(0xb03030), 0, 0, 0).scale.set(1.5, 0.55, 1);
-  P(g, 'box', [2.5, 0.8, 15], mat(0x7a2020), -1, 0.5, 0);                // 翼
-  P(g, 'box', [1.5, 0.6, 5], mat(0x7a2020), -4.5, 1.2, 0);
-  P(g, 'sph', [1.2, 8, 6], emat(0xffd0d0, 2.6), 4.6, 0, 0);              // 眼
-  return g;
-}
-function buildRunner() {
-  const g = new THREE.Group();
-  const body = P(g, 'box', [15, 3.5, 7], mat(0xd97b2a), 0, 3, 0);
-  body.rotation.z = 0.06;
-  P(g, 'box', [6, 2.8, 4.5], mat(0xa85a18), 2, 5.8, 0);                  // 座舱
-  P(g, 'box', [1.2, 1.6, 3.4], emat(0x4dd7ff, 2), 5, 6, 0);
-  P(g, 'cone', [1.6, 5, 6], emat(0x4dd7ff, 2.2), -9.5, 3, 2, 0, 0, Math.PI/2).name = 'flame1';
-  P(g, 'cone', [1.6, 5, 6], emat(0x4dd7ff, 2.2), -9.5, 3, -2, 0, 0, Math.PI/2).name = 'flame2';
-  P(g, 'box', [4, 1, 8], mat(0xb2661f), -5, 4.8, 0);                     // 尾翼
-  return g;
-}
-function buildHeavy() {
-  const g = new THREE.Group();
-  P(g, 'box', [22, 6, 6], mat(0x1d2a22), 0, 3, 8.5);
-  P(g, 'box', [22, 6, 6], mat(0x1d2a22), 0, 3, -8.5);
-  P(g, 'box', [23, 1.8, 6.6], mat(0x131b16), 0, 6.6, 8.5);
-  P(g, 'box', [23, 1.8, 6.6], mat(0x131b16), 0, 6.6, -8.5);
-  P(g, 'box', [18, 6.5, 13], mat(0x33453a), 0, 8, 0);                    // 车体
-  P(g, 'box', [6, 3, 12], mat(0x2a3a30), 8, 6.5, 0);                     // 前铲
-  P(g, 'box', [10, 6, 10], mat(0x4a6252), -2, 14, 0);                    // 炮塔
-  P(g, 'cyl', [1.2, 1.4, 14, 8], mat(0x242c26), 6, 15.5, 0, 0, 0, Math.PI/2);
-  P(g, 'sph', [1.3, 8, 6], emat(0xffd24d, 2), 2, 17.5, 0);               // 观瞄
-  return g;
-}
-function buildGunship() {
-  const g = new THREE.Group();
-  P(g, 'cap', [4, 10, 4, 10], mat(0x5f6e42), 0, 0, 0, 0, 0, Math.PI/2);  // 机身
-  P(g, 'sph', [3.2, 10, 8], mat(0x2d3a4a, { roughness: 0.2, metalness: 0.6 }), 5.5, 0.8, 0); // 座舱
-  P(g, 'cyl', [0.9, 1.3, 12, 6], mat(0x49542f), -11, 1, 0, 0, 0, Math.PI/2); // 尾梁
-  P(g, 'box', [1, 5, 3], mat(0x49542f), -16.5, 3, 0);                    // 尾翼
-  P(g, 'box', [2, 0.8, 10], mat(0x3d4628), 0, -3.2, 0);                  // 短翼挂架
-  P(g, 'cyl', [0.5, 0.5, 4, 6], mat(0x22282e), 1, -3.8, 5, 0, 0, Math.PI/2);
-  P(g, 'cyl', [0.5, 0.5, 4, 6], mat(0x22282e), 1, -3.8, -5, 0, 0, Math.PI/2);
-  const rotor = new THREE.Group(); rotor.name = 'rotor'; rotor.position.y = 4.6; g.add(rotor);
-  P(rotor, 'box', [30, 0.5, 1.6], mat(0xc8ccc0, { transparent: true, opacity: 0.85 }), 0, 0, 0);
-  P(rotor, 'box', [30, 0.5, 1.6], mat(0xc8ccc0, { transparent: true, opacity: 0.85 }), 0, 0, 0, 0, Math.PI/2, 0);
-  P(g, 'cyl', [0.8, 0.8, 2.4, 8], mat(0x2b3036), 0, 3.4, 0);
-  const tr = new THREE.Group(); tr.name = 'rotorTail'; tr.position.set(-16.5, 1, 1.2); g.add(tr);
-  P(tr, 'box', [7, 0.4, 1], mat(0xc8ccc0), 0, 0, 0);
-  tr.rotation.z = Math.PI / 2;
-  return g;
-}
-function buildAngel(big) {
-  const g = new THREE.Group();
-  const R = big ? 30 : 21;
-  const oct = new THREE.Group(); oct.name = 'octa'; oct.position.y = 0; g.add(oct);
-  const body = P(oct, 'octa', [R, 0], mat(0x3672e0, {
-    transparent: true, opacity: 0.88, roughness: 0.15, metalness: 0.2,
-    emissive: 0x1a3a8a, emissiveIntensity: 0.5
+  const R = 21;
+  const oct = new THREE.Group(); oct.name = 'octa'; g.add(oct);
+  P(oct, 'octa', [R, 0], mat(0x2f6fe4, {
+    transparent: true, opacity: 0.9, roughness: 0.12, metalness: 0.2,
+    emissive: 0x16368a, emissiveIntensity: 0.6
   }), 0, 0, 0);
-  body.name = 'octaBody';
   const edges = new THREE.LineSegments(
     new THREE.EdgesGeometry(geo('octa', R, 0)),
     new THREE.LineBasicMaterial({ color: 0x9cc4ff, transparent: true, opacity: 0.9 }));
   oct.add(edges);
-  P(oct, 'sph', [R * 0.28, 14, 10], emat(0xff3b3b, 2.6), 0, 0, 0);       // 红色核心
-  if (big) {
-    const halo = new THREE.LineSegments(
-      new THREE.EdgesGeometry(geo('octa', R * 1.45, 0)),
-      new THREE.LineBasicMaterial({ color: 0x7db8ff, transparent: true, opacity: 0.35 }));
-    halo.name = 'halo';
-    g.add(halo);
-  }
+  P(oct, 'sph', [R * 0.22, 12, 10], emat(0xff3b3b, 2.4), 0, 0, 0);       // 掘进核心
   const at = P(g, 'tor', [R + 12, 0.9, 8, 8], emat(0xff9a3d, 1.8), 0, 0, 0, Math.PI/2, 0, 0);
   at.name = 'atring';
   return g;
 }
+/* --- 第14使徒 塞路尔：骷髅面甲 + 纸带手臂（最强使徒） --- */
+function buildZeruel() {
+  const g = new THREE.Group();
+  P(g, 'cap', [8.5, 20, 6, 12], mat(0x363845), 0, 2, 0);                 // 暗色主体
+  P(g, 'cone', [10.5, 14, 10], mat(0x282a34), 0, -13, 0, Math.PI, 0, 0); // 下裾
+  P(g, 'sph', [5.5, 10, 8], mat(0x454857), -1, 12, 8).scale.set(1, 0.85, 1);   // 肩部隆起
+  P(g, 'sph', [5.5, 10, 8], mat(0x454857), -1, 12, -8).scale.set(1, 0.85, 1);
+  P(g, 'box', [1.8, 10.5, 7], mat(0xe4e0d4), 8.2, 7, 0);                 // 白色骷髅面甲
+  P(g, 'sph', [1.0, 8, 6], mat(0x0c0c10), 9.1, 9.2, 1.9);                // 眼窝
+  P(g, 'sph', [1.0, 8, 6], mat(0x0c0c10), 9.1, 9.2, -1.9);
+  P(g, 'box', [0.8, 3.2, 0.9], mat(0x0c0c10), 9.05, 4.2, 0);             // 面甲裂口
+  P(g, 'sph', [2.8, 10, 8], emat(0xff3b3b, 2.6), 8.2, 0, 0);             // 核心
+  P(g, 'box', [0.8, 27, 3.4], mat(0xc9c6bc), 2, -4, 11.5, 0.16, 0, 0);   // 纸带状手臂
+  P(g, 'box', [0.8, 27, 3.4], mat(0xc9c6bc), 2, -4, -11.5, -0.16, 0, 0);
+  P(g, 'box', [0.7, 14, 2.6], mat(0xb8b5ab), 4, -9, 14.5, 0.35, 0, 0.1); // 手臂折段
+  P(g, 'box', [0.7, 14, 2.6], mat(0xb8b5ab), 4, -9, -14.5, -0.35, 0, 0.1);
+  const at = P(g, 'tor', [40, 1.0, 8, 8], emat(0xff9a3d, 1.8), 0, 0, 0, Math.PI/2, 0, 0);
+  at.name = 'atring';
+  return g;
+}
 const ENEMY_BUILDERS = {
-  drone: buildDrone, soldier: buildZaku, runner: buildRunner,
-  heavy: buildHeavy, gunship: buildGunship,
-  angel: () => buildAngel(false), bigangel: () => buildAngel(true)
+  drone: buildShamshel, soldier: buildSachiel, runner: buildMatariel,
+  heavy: buildBardiel, gunship: buildSahaquiel,
+  angel: buildRamiel, bigangel: buildZeruel
 };
 const TOWER_BUILDERS = {
-  gm: buildGM, sniper: buildSniper, funnel: buildFunnel,
-  cannon: buildCannon, atfield: buildATField, eva: buildEVA
+  gm: buildMassProd, sniper: buildEva00, funnel: buildEva08,
+  cannon: buildEva02, atfield: buildMark06, eva: buildEva13
 };
 
 /* ---------- 传送门与本部 ---------- */
@@ -1156,7 +1177,7 @@ function updateTowers(dt) {
       const d2 = crit ? dmg * 3 : dmg;
       addBeam(mx, my, mz, e.x, e.y, e.z + 12, crit ? '#ff3b3b' : '#b78dff', crit ? 4.5 : 3, 0.25);
       addParts(e.x, e.y, e.z + 12, crit ? '#ff3b3b' : '#b78dff', 18, 125);
-      if (crit) { addText(t.x, t.y, 48, '暴 走 !!', '#ff3b3b', 17); SFX.crit(); }
+      if (crit) { addText(t.x, t.y, 48, '觉 醒 !!', '#ff3b3b', 17); SFX.crit(); }
       else SFX.snipe();
       hitEnemy(e, d2, T.pierce);
     }
@@ -1173,7 +1194,7 @@ function updateHero(dt) {
       H.dead = false; H.hp = S.hp;
       H.x = (GOAL.c - 2.5) * CELL; H.y = goalPx.y;
       addParts(H.x, H.y, 12, '#8dff4d', 20, 95);
-      addText(H.x, H.y, 42, '指挥机再出击', '#8dff4d', 14);
+      addText(H.x, H.y, 42, '初号机·再启动', '#8dff4d', 14);
       SFX.place();
     }
     return;
@@ -1221,7 +1242,7 @@ function updateHero(dt) {
   if (H.hp <= 0) {
     H.dead = true; H.respawnT = 8; H.hp = 0;
     addParts(H.x, H.y, 14, '#ff9a3d', 40, 135);
-    addText(H.x, H.y, 40, '指挥机被击坠！', '#ff3b3b', 15);
+    addText(H.x, H.y, 40, '初号机机能停止！', '#ff3b3b', 15);
     SFX.boom();
     if (G.selected === 'HERO') refreshInfo();
   }
@@ -1231,8 +1252,8 @@ function heroAbility() {
   if (G.paused || G.state === 'won' || G.state === 'lost' || H.dead || H.abCd > 0) return;
   const S = HERO_LV[H.lv];
   H.abCd = HERO_ABILITY_CD;
-  addRing(H.x, H.y, HERO_ABILITY_R, '#7dffee');
-  addParts(H.x, H.y, 14, '#7dffee', 30, 135);
+  addRing(H.x, H.y, HERO_ABILITY_R, '#8dff4d');
+  addParts(H.x, H.y, 14, '#8dff4d', 30, 135);
   SFX.slash();
   for (const e of G.enemies) {
     if (!e.dead && Math.hypot(e.x - H.x, e.y - H.y) <= HERO_ABILITY_R + e.r)
@@ -1305,7 +1326,7 @@ function startWave() {
   }
   if (G.wave === SPAWNS[1].from)
     addText((SPAWNS[1].c + 0.5) * CELL, (SPAWNS[1].r + 0.5) * CELL, 50, '⚠ 第二入侵口开放！', '#ff7a1a', 16);
-  announce('第 ' + G.wave + ' 波 · 敌机来袭', '#4dd7ff', 20);
+  announce('第 ' + G.wave + ' 波 · 使徒接近中', '#4dd7ff', 20);
   refreshNextWave();
 }
 function updateWave(dt) {
@@ -1336,7 +1357,7 @@ function gameOver(win) {
   document.getElementById('ovTitle').textContent = win ? '作 战 完 成' : '本 部 陷 落';
   document.getElementById('ovTitle').className = 'big ' + (win ? 'win' : 'lose');
   document.getElementById('ovDetail').textContent =
-    (win ? '全部 ' + TOTAL_WAVES + ' 波敌机已肃清。' : '第 ' + G.wave + ' 波防线崩溃。') +
+    (win ? '全部 ' + TOTAL_WAVES + ' 波使徒已歼灭，人类补完计划阻止成功。' : '第 ' + G.wave + ' 波防线崩溃，第三新东京市陷落。') +
     ' 总击破 ' + G.kills + ' · 剩余耐久 ' + G.lives;
   ovl.classList.add('on');
   if (win) SFX.up(); else SFX.alarm();
@@ -1355,6 +1376,8 @@ function syncMeshes(dt) {
     if (ring) { ring.rotation.z = t.anim * 1.4; ring.position.y = 19 + Math.sin(t.anim * 2.4) * 2.4; }
     const core = t.mesh.getObjectByName('core');
     if (core) core.rotation.y = t.anim * 2.2;
+    const drum = t.mesh.getObjectByName('drum');
+    if (drum) drum.rotation.y = t.anim * 8;
   }
   for (const e of G.enemies) {
     e.mesh.position.copy(gw(e.x, e.y, e.z));
@@ -1453,7 +1476,7 @@ function drawOverlay() {
     if (p) {
       octx.fillStyle = 'rgba(255,122,26,0.85)';
       octx.font = 'bold 12px sans-serif'; octx.textAlign = 'center';
-      octx.fillText('指挥机重生中 ' + Math.ceil(H.respawnT) + 's', p.x, p.y);
+      octx.fillText('初号机再启动中 ' + Math.ceil(H.respawnT) + 's', p.x, p.y);
     }
   }
   // 标签
@@ -1503,7 +1526,7 @@ function drawOverlay() {
   octx.fillRect(10, ov.height - 40, 138 * pct, 28);
   octx.fillStyle = pct >= 1 ? '#7dffee' : '#7d8ea0';
   octx.font = 'bold 12px sans-serif'; octx.textAlign = 'left';
-  octx.fillText('E 光束回旋斩' + (pct >= 1 ? ' READY' : ' ' + Math.ceil(H.abCd) + 's'), 18, ov.height - 21);
+  octx.fillText('E 暴走' + (pct >= 1 ? ' READY' : ' ' + Math.ceil(H.abCd) + 's'), 18, ov.height - 21);
   // 视角提示
   octx.fillStyle = 'rgba(125,142,160,0.55)';
   octx.font = '11px sans-serif'; octx.textAlign = 'right';
@@ -1594,10 +1617,10 @@ function refreshInfo() {
     const H = G.hero, S = HERO_LV[H.lv];
     const maxed = H.lv >= 2;
     el.innerHTML =
-      '<div class="tname">指挥机·白色彗星 <span style="color:#7dffee">LV' + (H.lv+1) + '</span></div>' +
-      '<div class="desc">可操纵旗舰机。WASD 机动（跟随镜头方向），自动开火，E 释放光束回旋斩。被击坠后 8 秒重生。</div>' +
+      '<div class="tname">EVA初号机 <span style="color:#7dffee">LV' + (H.lv+1) + '</span></div>' +
+      '<div class="desc">适格者搭乘的初号机。WASD 机动（跟随镜头方向），自动开火，E 触发暴走范围冲击。机能停止后 8 秒再启动。</div>' +
       row('伤害', S.dmg) + row('耐久', Math.ceil(Math.max(0,H.hp)) + '/' + S.hp) +
-      row('射程', S.range) + row('回旋斩伤害', S.ab) +
+      row('射程', S.range) + row('暴走冲击伤害', S.ab) +
       '<div class="btns">' +
       '<button id="btnUpH" ' + (maxed || G.money < (HERO_UP[H.lv]||0) ? 'disabled' : '') + '>' +
       (maxed ? '已满级' : '⬆ 强化 💰' + HERO_UP[H.lv]) + '</button></div>';
@@ -1624,16 +1647,16 @@ function refreshInfo() {
     document.getElementById('btnSell').onclick = () => { sellTower(t); refreshInfo(); };
     return;
   }
-  el.innerHTML = '<span style="color:var(--dim);font-size:12px;">选择格纳库中的机体部署迷宫，<br>点击已部署机体或指挥机查看/强化。</span>';
+  el.innerHTML = '<span style="color:var(--dim);font-size:12px;">选择格纳库中的机体部署迷宫，<br>点击已部署机体或初号机查看/强化。</span>';
 }
 function refreshNextWave() {
   const el = document.getElementById('nextwave');
   const n = G.wave + (G.state === 'wave' ? 0 : 1);
   if (G.state === 'wave') {
-    el.innerHTML = '第 <b>' + G.wave + '</b> 波交战中… 剩余敌机 ' + (G.spawnQ.length + G.enemies.length);
+    el.innerHTML = '第 <b>' + G.wave + '</b> 波交战中… 剩余使徒 ' + (G.spawnQ.length + G.enemies.length);
     return;
   }
-  if (n > TOTAL_WAVES) { el.innerHTML = '全部波次已肃清。'; return; }
+  if (n > TOTAL_WAVES) { el.innerHTML = '全部使徒已歼灭。'; return; }
   const parts = WAVE_DEFS[n-1].map(g => {
     const E = ENEMIES[g.type];
     return E.name + (E.fly ? '✈' : '') + '×' + g.n;
